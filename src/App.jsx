@@ -1,106 +1,136 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
-  const [expression, setExpression] = useState("");
-  const [result, setResult] = useState("");
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-  const handleClick = (value) => {
-    setExpression((prev) => prev + value);
-  };
-
-  const handleClear = () => {
-    setExpression("");
-    setResult("");
-  };
-
-  const handleEqual = () => {
-    if (expression.trim() === "") {
-      setResult("Error");
-      return;
-    }
-
-    try {
-      const output = eval(expression);
-
-      if (output === Infinity || output === -Infinity) {
-        setResult("Infinity");
-      } else if (Number.isNaN(output)) {
-        setResult("NaN");
-      } else {
-        setResult(output);
-      }
-    } catch {
-      setResult("Error");
-    }
-  };
-
-  const buttons = [
-    "7", "8", "9", "+",
-    "4", "5", "6", "-",
-    "1", "2", "3", "*",
-    "C", "0", "=", "/"
-  ];
-
-  return (
-    <div style={{
-      textAlign: "center",
+  const styles = {
+    // ... (Your entire original styles object remains here, unchanged)
+    page: {
+      fontFamily: "sans-serif",
       background: "#1e293b",
       minHeight: "100vh",
-      paddingTop: "40px",
-      color: "white"
-    }}>
-      <h1 style={{ fontSize: "36px", fontWeight: "bold" }}>
-        React Calculator
-      </h1>
+      padding: "20px",
+    },
+    container: {
+      maxWidth: "1200px",
+      margin: "auto",
+    },
+    title: {
+      color: "white",
+      textAlign: "center",
+      marginBottom: "20px",
+      fontSize: "28px",
+      fontWeight: "bold",
+    },
+    searchBox: {
+      width: "100%",
+      padding: "12px",
+      fontSize: "16px",
+      borderRadius: "8px",
+      border: "none",
+      marginBottom: "25px",
+    },
+    grid: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "20px",
+      justifyContent: "center",
+    },
+    card: {
+      width: "160px",
+      background: "white",
+      padding: "15px",
+      borderRadius: "10px",
+      textAlign: "center",
+      boxShadow: "0 3px 6px rgba(0,0,0,0.15)",
+    },
+    flag: {
+      width: "100%",
+      height: "90px",
+      objectFit: "cover",
+      borderRadius: "6px",
+    },
+    name: {
+      marginTop: "10px",
+      fontWeight: 600,
+      color: "#333",
+    },
+    loading: {
+      color: "white",
+      textAlign: "center",
+      fontSize: "22px",
+      marginTop: "40px",
+    },
+  };
 
-      <input
-        type="text"
-        value={expression}
-        readOnly
-        style={{
-          marginTop: "20px",
-          width: "250px",
-          height: "28px",
-          padding: "5px 10px",
-          fontSize: "16px"
-        }}
-      />
+  // API CALL
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch(
+          "https://xcountries-backend.labs.crio.do/all"
+        );
 
-      <div style={{
-        marginTop: "15px",
-        height: "25px",
-        fontSize: "22px"
-      }}>
-        {result}
-      </div>
+        if (!response.ok) {
+          throw new Error("Failed to fetch");
+        }
 
-      <div style={{
-        marginTop: "30px",
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 80px)",
-        gap: "18px",
-        justifyContent: "center"
-      }}>
-        {buttons.map((btn, index) => (
-          <button
-            key={index}
-            style={{
-              padding: "18px",
-              fontSize: "20px",
-              background: "#d1d5db",
-              borderRadius: "10px",
-              border: "2px solid black",
-              cursor: "pointer"
-            }}
-            onClick={() => {
-              if (btn === "C") handleClear();
-              else if (btn === "=") handleEqual();
-              else handleClick(btn);
-            }}
-          >
-            {btn}
-          </button>
-        ))}
+        const data = await response.json();
+        setCountries(data);
+      } catch (error) {
+        console.error("Error fetching data:", error); // required by tests
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  // ✅ CORRECTED FILTER LOGIC: Shows all when search is empty, otherwise uses exact match
+  const filteredCountries = countries.filter((country) => {
+    // Check if search is empty or only whitespace
+    if (search.trim() === "") {
+      return true; // Return all countries
+    }
+    
+    // Strict exact match (case-insensitive)
+    return country.name.toLowerCase() === search.toLowerCase();
+  });
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <h1 style={styles.title}>Country Flags</h1>
+
+        {/* SEARCH BOX */}
+        <input
+          type="text"
+          placeholder="Search for a country..."
+          style={styles.searchBox}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        {loading ? (
+          <p style={styles.loading}>Loading...</p>
+        ) : (
+          <div style={styles.grid}>
+            {filteredCountries.map((country) => (
+              <div key={country.name} className="countryCard" style={styles.card}>
+                <img
+                  src={country.flag}
+                  alt={country.name}
+                  style={styles.flag}
+                  referrerPolicy="no-referrer"
+                />
+                <p style={styles.name}>{country.name}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
