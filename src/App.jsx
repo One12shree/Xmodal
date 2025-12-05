@@ -1,81 +1,76 @@
 import React, { useState } from "react";
 
-const customDictionary = {
-  teh: "the",
-  wrok: "work",
-  fot: "for",
-  exampl: "example",
-};
+export default function WeatherApp() {
+  const [city, setCity] = useState("");
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-function App() {
-  const [text, setText] = useState("");
-  const [suggestion, setSuggestion] = useState("");
+  const API_KEY = "9678ae0b98104d96b41190527250512";
 
-  const checkSpelling = (value) => {
-    setText(value);
+  const fetchWeather = async () => {
+    if (!city.trim()) return;
 
-    if (value.trim() === "") {
-      setSuggestion("");
-      return;
-    }
+    setLoading(true);
+    setWeather(null);
 
-    // Split into individual words
-    const words = value.split(/\s+/);
+    try {
+      const response = await fetch(
+        `http://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}`
+      );
 
-    // Search for first incorrect word
-    for (let word of words) {
-      const lower = word.toLowerCase();
+      const data = await response.json();
 
-      if (customDictionary[lower]) {
-        setSuggestion(`Did you mean: ${customDictionary[lower]}?`);
+      // WeatherAPI returns an "error" field if city is invalid
+      if (data.error) {
+        alert("Failed to fetch weather data");
         return;
       }
-    }
 
-    // No misspellings found
-    setSuggestion("");
+      setWeather(data);
+    } catch (err) {
+      alert("Failed to fetch weather data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Spell Check and Auto-Correction</h1>
+    <div className="app-container">
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Enter city"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+        />
+        <button onClick={fetchWeather}>Search</button>
+      </div>
 
-      <textarea
-        placeholder="Enter text..."
-        value={text}
-        onChange={(e) => checkSpelling(e.target.value)}
-        style={styles.textarea}
-      ></textarea>
+      {loading && <p>Loading data…</p>}
 
-      {suggestion && (
-        <p style={styles.suggestion}>{suggestion}</p>
+      {weather && (
+        <div className="weather-cards">
+          <div className="weather-card">
+            <h3>Temperature</h3>
+            <p>{weather.current.temp_c}°C</p>
+          </div>
+
+          <div className="weather-card">
+            <h3>Humidity</h3>
+            <p>{weather.current.humidity}%</p>
+          </div>
+
+          <div className="weather-card">
+            <h3>Condition</h3>
+            <p>{weather.current.condition.text}</p>
+          </div>
+
+          <div className="weather-card">
+            <h3>Wind Speed</h3>
+            <p>{weather.current.wind_kph} kph</p>
+          </div>
+        </div>
       )}
     </div>
   );
 }
-
-const styles = {
-  container: {
-    margin: "40px auto",
-    padding: "20px",
-    width: "80%",
-    border: "1px solid #ccc",
-  },
-  title: {
-    fontSize: "32px",
-    marginBottom: "20px",
-  },
-  textarea: {
-    width: "400px",
-    height: "120px",
-    padding: "10px",
-    fontSize: "16px",
-  },
-  suggestion: {
-    marginTop: "15px",
-    fontSize: "18px",
-    fontWeight: "bold",
-  },
-};
-
-export default App;
