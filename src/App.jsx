@@ -1,48 +1,81 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-function Stopwatch() {
-  const [seconds, setSeconds] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
+const customDictionary = {
+  teh: "the",
+  wrok: "work",
+  fot: "for",
+  exampl: "example",
+};
 
-  useEffect(() => {
-    let timer = null;
+function App() {
+  const [text, setText] = useState("");
+  const [suggestion, setSuggestion] = useState("");
 
-    if (isRunning) {
-      timer = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
+  const checkSpelling = (value) => {
+    setText(value);
+
+    if (value.trim() === "") {
+      setSuggestion("");
+      return;
     }
 
-    return () => clearInterval(timer);
-  }, [isRunning]);
+    // Split into individual words
+    const words = value.split(/\s+/);
 
-  const handleStartStop = () => {
-    setIsRunning((prev) => !prev);
+    // Search for first incorrect word
+    for (let word of words) {
+      const lower = word.toLowerCase();
+
+      if (customDictionary[lower]) {
+        setSuggestion(`Did you mean: ${customDictionary[lower]}?`);
+        return;
+      }
+    }
+
+    // No misspellings found
+    setSuggestion("");
   };
-
-  const handleReset = () => {
-    setSeconds(0);
-    setIsRunning(false);
-  };
-
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  const formattedTime = `${minutes}:${secs.toString().padStart(2, "0")}`;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Stopwatch</h1>
-      <p>Time: {formattedTime}</p>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Spell Check and Auto-Correction</h1>
 
-      <button onClick={handleStartStop}>
-        {isRunning ? "Stop" : "Start"}
-      </button>
+      <textarea
+        placeholder="Enter text..."
+        value={text}
+        onChange={(e) => checkSpelling(e.target.value)}
+        style={styles.textarea}
+      ></textarea>
 
-      <button onClick={handleReset} style={{ marginLeft: "10px" }}>
-        Reset
-      </button>
+      {suggestion && (
+        <p style={styles.suggestion}>{suggestion}</p>
+      )}
     </div>
   );
 }
 
-export default Stopwatch;
+const styles = {
+  container: {
+    margin: "40px auto",
+    padding: "20px",
+    width: "80%",
+    border: "1px solid #ccc",
+  },
+  title: {
+    fontSize: "32px",
+    marginBottom: "20px",
+  },
+  textarea: {
+    width: "400px",
+    height: "120px",
+    padding: "10px",
+    fontSize: "16px",
+  },
+  suggestion: {
+    marginTop: "15px",
+    fontSize: "18px",
+    fontWeight: "bold",
+  },
+};
+
+export default App;
