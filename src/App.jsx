@@ -1,75 +1,215 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-const XTable = () => {
-  const [data, setData] = useState([
-    { date: "2022-09-01", views: 100, article: "Article 1" },
-    { date: "2023-09-01", views: 100, article: "Article 1" },
-    { date: "2023-09-02", views: 150, article: "Article 2" },
-    { date: "2023-09-02", views: 120, article: "Article 3" },
-    { date: "2020-09-03", views: 200, article: "Article 4" }
-  ]);
+export default function XModal() {
+  const [open, setOpen] = useState(false);
 
-  // --- Sort By Date (desc), then views desc ---
-  const sortByDate = () => {
-    const sorted = [...data].sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    phone: "",
+    dob: "",
+  });
 
-      if (dateB - dateA !== 0) return dateB - dateA; // latest first
+  const modalRef = useRef();
 
-      return b.views - a.views; // if same date → higher views first
-    });
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (open && modalRef.current && !modalRef.current.contains(e.target)) {
+        setOpen(false);
+        resetForm();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
-    setData(sorted);
+  const resetForm = () => {
+    setFormData({ username: "", email: "", phone: "", dob: "" });
   };
 
-  // --- Sort By Views (desc), then date desc ---
-  const sortByViews = () => {
-    const sorted = [...data].sort((a, b) => {
-      if (b.views - a.views !== 0) return b.views - a.views; // highest first
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const { username, email, phone, dob } = formData;
 
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+    // Field validations
+    if (!username) {
+      alert("Please fill out the Username field.");
+      return;
+    }
+    if (!email) {
+      alert("Please fill out the Email field.");
+      return;
+    }
+    if (!phone) {
+      alert("Please fill out the Phone Number field.");
+      return;
+    }
+    if (!dob) {
+      alert("Please fill out the Date of Birth field.");
+      return;
+    }
 
-      return dateB - dateA; // if same views → latest date first
-    });
+    // Email validation
+    if (!email.includes("@")) {
+      alert("Invalid email. Please check your email address.");
+      return;
+    }
 
-    setData(sorted);
+    // Phone validation
+    if (phone.length !== 10 || isNaN(phone)) {
+      alert("Invalid phone number. Please enter a 10-digit phone number.");
+      return;
+    }
+
+    // DOB validation (future date)
+    const today = new Date();
+    const userDOB = new Date(dob);
+
+    if (userDOB > today) {
+      alert("Invalid date of birth. Date cannot be in the future.");
+      return;
+    }
+
+    // All good → close modal and reset
+    setOpen(false);
+    resetForm();
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Date and Views Table</h1>
+    <div
+      style={{
+        minHeight: "100vh",
+        paddingTop: "40px",
+        textAlign: "center",
+        background: "#f0f2f5",
+      }}
+    >
+      <h1>User Details Modal</h1>
 
-      <button onClick={sortByDate} style={{ marginRight: "10px" }}>
-        Sort by Date
-      </button>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          style={{
+            padding: "10px 20px",
+            background: "#2563eb",
+            border: "none",
+            color: "white",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "16px",
+            marginTop: "20px",
+          }}
+        >
+          Open Form
+        </button>
+      )}
 
-      <button onClick={sortByViews}>
-        Sort by Views
-      </button>
+      {open && (
+        <div
+          className="modal"
+          style={{
+            position: "fixed",
+            inset: "0",
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            ref={modalRef}
+            className="modal-content"
+            style={{
+              background: "white",
+              padding: "30px",
+              borderRadius: "10px",
+              width: "420px",
+              boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+              animation: "fadeIn 0.2s ease",
+            }}
+          >
+            <h2 style={{ marginBottom: "20px" }}>Fill Details</h2>
 
-      <table border="1" style={{ marginTop: "20px", width: "60%", textAlign: "left" }}>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Views</th>
-            <th>Article</th>
-          </tr>
-        </thead>
+            <form onSubmit={handleSubmit}>
+              {/* Username */}
+              <label>Username:</label>
+              <input
+                id="username"
+                type="text"
+                value={formData.username}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
+                style={inputStyle}
+              />
 
-        <tbody>
-          {data.map((row, index) => (
-            <tr key={index}>
-              <td>{row.date}</td>
-              <td>{row.views}</td>
-              <td>{row.article}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {/* Email */}
+              <label>Email Address:</label>
+              <input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                style={inputStyle}
+              />
+
+              {/* Phone */}
+              <label>Phone Number:</label>
+              <input
+                id="phone"
+                type="text"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                style={inputStyle}
+              />
+
+              {/* DOB */}
+              <label>Date of Birth:</label>
+              <input
+                id="dob"
+                type="date"
+                value={formData.dob}
+                onChange={(e) =>
+                  setFormData({ ...formData, dob: e.target.value })
+                }
+                style={inputStyle}
+              />
+
+              <button
+                type="submit"
+                className="submit-button"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginTop: "20px",
+                  background: "#1d4ed8",
+                  border: "none",
+                  color: "white",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+              >
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export default XTable;
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  margin: "8px 0 15px 0",
+  borderRadius: "6px",
+  border: "1px solid #cbd5e1",
+};
