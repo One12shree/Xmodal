@@ -1,76 +1,75 @@
 import React, { useState } from "react";
 
-export default function WeatherApp() {
-  const [city, setCity] = useState("");
-  const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(false);
+const XTable = () => {
+  const [data, setData] = useState([
+    { date: "2022-09-01", views: 100, article: "Article 1" },
+    { date: "2023-09-01", views: 100, article: "Article 1" },
+    { date: "2023-09-02", views: 150, article: "Article 2" },
+    { date: "2023-09-02", views: 120, article: "Article 3" },
+    { date: "2020-09-03", views: 200, article: "Article 4" }
+  ]);
 
-  const API_KEY = "9678ae0b98104d96b41190527250512";
+  // --- Sort By Date (desc), then views desc ---
+  const sortByDate = () => {
+    const sorted = [...data].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
 
-  const fetchWeather = async () => {
-    if (!city.trim()) return;
+      if (dateB - dateA !== 0) return dateB - dateA; // latest first
 
-    setLoading(true);
-    setWeather(null);
+      return b.views - a.views; // if same date → higher views first
+    });
 
-    try {
-      const response = await fetch(
-        `http://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}`
-      );
+    setData(sorted);
+  };
 
-      const data = await response.json();
+  // --- Sort By Views (desc), then date desc ---
+  const sortByViews = () => {
+    const sorted = [...data].sort((a, b) => {
+      if (b.views - a.views !== 0) return b.views - a.views; // highest first
 
-      // WeatherAPI returns an "error" field if city is invalid
-      if (data.error) {
-        alert("Failed to fetch weather data");
-        return;
-      }
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
 
-      setWeather(data);
-    } catch (err) {
-      alert("Failed to fetch weather data");
-    } finally {
-      setLoading(false);
-    }
+      return dateB - dateA; // if same views → latest date first
+    });
+
+    setData(sorted);
   };
 
   return (
-    <div className="app-container">
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Enter city"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        />
-        <button onClick={fetchWeather}>Search</button>
-      </div>
+    <div style={{ padding: "20px" }}>
+      <h1>Date and Views Table</h1>
 
-      {loading && <p>Loading data…</p>}
+      <button onClick={sortByDate} style={{ marginRight: "10px" }}>
+        Sort by Date
+      </button>
 
-      {weather && (
-        <div className="weather-cards">
-          <div className="weather-card">
-            <h3>Temperature</h3>
-            <p>{weather.current.temp_c}°C</p>
-          </div>
+      <button onClick={sortByViews}>
+        Sort by Views
+      </button>
 
-          <div className="weather-card">
-            <h3>Humidity</h3>
-            <p>{weather.current.humidity}%</p>
-          </div>
+      <table border="1" style={{ marginTop: "20px", width: "60%", textAlign: "left" }}>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Views</th>
+            <th>Article</th>
+          </tr>
+        </thead>
 
-          <div className="weather-card">
-            <h3>Condition</h3>
-            <p>{weather.current.condition.text}</p>
-          </div>
-
-          <div className="weather-card">
-            <h3>Wind Speed</h3>
-            <p>{weather.current.wind_kph} kph</p>
-          </div>
-        </div>
-      )}
+        <tbody>
+          {data.map((row, index) => (
+            <tr key={index}>
+              <td>{row.date}</td>
+              <td>{row.views}</td>
+              <td>{row.article}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
-}
+};
+
+export default XTable;
