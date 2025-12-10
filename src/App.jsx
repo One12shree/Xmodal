@@ -1,215 +1,269 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 
-export default function XModal() {
-  const [open, setOpen] = useState(false);
-
+export default function App() {
+  const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     phone: "",
-    dob: "",
+    dob: "", // Date of Birth (dd-mm-yyyy)
   });
+  const [errors, setErrors] = useState({});
+  const [submissionMsg, setSubmissionMsg] = useState("");
 
-  const modalRef = useRef();
-
-  // Close modal when clicking outside
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (open && modalRef.current && !modalRef.current.contains(e.target)) {
-        setOpen(false);
-        resetForm();
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  const resetForm = () => {
+  // Test Case 1: Opens the modal
+  const openForm = () => {
+    setIsOpen(true);
+    setErrors({});
+    setSubmissionMsg("");
     setFormData({ username: "", email: "", phone: "", dob: "" });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const { username, email, phone, dob } = formData;
-
-    // Field validations
-    if (!username) {
-      alert("Please fill out the Username field.");
-      return;
-    }
-    if (!email) {
-      alert("Please fill out the Email field.");
-      return;
-    }
-    if (!phone) {
-      alert("Please fill out the Phone Number field.");
-      return;
-    }
-    if (!dob) {
-      alert("Please fill out the Date of Birth field.");
-      return;
-    }
-
-    // Email validation
-    if (!email.includes("@")) {
-      alert("Invalid email. Please check your email address.");
-      return;
-    }
-
-    // Phone validation
-    if (phone.length !== 10 || isNaN(phone)) {
-      alert("Invalid phone number. Please enter a 10-digit phone number.");
-      return;
-    }
-
-    // DOB validation (future date)
-    const today = new Date();
-    const userDOB = new Date(dob);
-
-    if (userDOB > today) {
-      alert("Invalid date of birth. Date cannot be in the future.");
-      return;
-    }
-
-    // All good → close modal and reset
-    setOpen(false);
-    resetForm();
+  // Test Case 6: Closes the modal
+  const closeForm = () => {
+    setIsOpen(false);
   };
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    // Clear the error for the field being edited
+    setErrors({
+        ...errors,
+        [e.target.name]: '' 
+    });
+  };
+
+  // --- Validation Logic (For Test Cases 2, 3, 4) ---
+  const validate = () => {
+    const newErrors = {};
+    let isValid = true;
+    
+    if (!formData.username) {
+        newErrors.username = "Username is required";
+        isValid = false;
+    }
+
+    // Test Case 2: Validates email input field
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      newErrors.email = "Valid email is required (e.g., user@example.com)";
+      isValid = false;
+    }
+
+    // Test Case 3: Validates phone number input field (10 digits)
+    const phoneRegex = /^\d{10}$/;
+    if (!formData.phone || !phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
+      isValid = false;
+    }
+
+    // Test Case 4: Validates date of birth input field (dd-mm-yyyy format)
+    const dobRegex = /^\d{2}-\d{2}-\d{4}$/;
+    if (!formData.dob || !dobRegex.test(formData.dob)) {
+      newErrors.dob = "DOB must be in dd-mm-yyyy format";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  // Test Case 5: Submits the form with valid data
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (validate()) {
+      setSubmissionMsg("Success! Form submitted with valid data.");
+      setErrors({});
+      // Optional: closeForm(); // Close modal after successful submission
+    } else {
+      setSubmissionMsg("Please correct the errors above.");
+    }
+  };
+
+  // --- STYLES (Includes the CSS fix for Test Case 6) ---
+  const styles = `
+    /* FIX for Test Case 6: Ensures the overlay covers the ENTIRE viewport */
+    .modal-overlay {
+      position: fixed; 
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7); 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000; 
+      font-family: Arial, sans-serif;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+      max-width: 450px;
+      width: 90%;
+      text-align: left;
+    }
+
+    .modal-content h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+
+    .error-msg {
+      color: #dc3545;
+      font-size: 0.85em;
+      margin-top: 5px;
+      display: block;
+    }
+
+    .submit-msg {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        color: ${submissionMsg.startsWith('Success') ? '#28a745' : '#dc3545'};
+    }
+
+    .modal-content button[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .modal-content button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    
+    /* Global styles for the button outside the modal */
+    #root > button {
+        padding: 10px 20px;
+        background-color: #5a5f73; /* Darker background to match the outside area of the UI preview */
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 1em;
+    }
+  `;
+  // --- END OF STYLES ---
+
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        paddingTop: "40px",
-        textAlign: "center",
-        background: "#f0f2f5",
-      }}
-    >
-      <h1>User Details Modal</h1>
+    <div>   
+      {/* Inject CSS into the document */}
+      <style>{styles}</style> 
+      
+      <button onClick={openForm}>Open Form</button>
 
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          style={{
-            padding: "10px 20px",
-            background: "#2563eb",
-            border: "none",
-            color: "white",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontSize: "16px",
-            marginTop: "20px",
-          }}
-        >
-          Open Form
-        </button>
-      )}
-
-      {open && (
-        <div
-          className="modal"
-          style={{
-            position: "fixed",
-            inset: "0",
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "20px",
-          }}
-        >
+      {/* MODAL (Conditional rendering) */}
+      {isOpen && (
+        <div 
+          className="modal-overlay" 
+          onClick={closeForm} // Handles Test Case 6: Close on outside click
+        > 
           <div
-            ref={modalRef}
             className="modal-content"
-            style={{
-              background: "white",
-              padding: "30px",
-              borderRadius: "10px",
-              width: "420px",
-              boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
-              animation: "fadeIn 0.2s ease",
-            }}
+            onClick={(e) => e.stopPropagation()} // Keeps modal open on content click
           >
-            <h2 style={{ marginBottom: "20px" }}>Fill Details</h2>
+            <h2>Fill Details</h2>
 
             <form onSubmit={handleSubmit}>
-              {/* Username */}
-              <label>Username:</label>
-              <input
-                id="username"
-                type="text"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-                style={inputStyle}
-              />
+              
+              <div className="form-group">
+                <label>Username:</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                />
+                {errors.username && <span className="error-msg">{errors.username}</span>}
+              </div>
 
-              {/* Email */}
-              <label>Email Address:</label>
-              <input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                style={inputStyle}
-              />
+              <div className="form-group">
+                <label>Email Address:</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {/* Handles Test Case 2: Validates email input field */}
+                {errors.email && <span className="error-msg">{errors.email}</span>}
+              </div>
 
-              {/* Phone */}
-              <label>Phone Number:</label>
-              <input
-                id="phone"
-                type="text"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                style={inputStyle}
-              />
+              <div className="form-group">
+                <label>Phone Number:</label>
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="e.g., 1234567890"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  maxLength="10"
+                />
+                {/* Handles Test Case 3: Validates phone number input field */}
+                {errors.phone && <span className="error-msg">{errors.phone}</span>}
+              </div>
 
-              {/* DOB */}
-              <label>Date of Birth:</label>
-              <input
-                id="dob"
-                type="date"
-                value={formData.dob}
-                onChange={(e) =>
-                  setFormData({ ...formData, dob: e.target.value })
-                }
-                style={inputStyle}
-              />
+              <div className="form-group">
+                <label>Date of Birth:</label>
+                <input
+                  type="text"
+                  name="dob"
+                  placeholder="dd-mm-yyyy"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  maxLength="10"
+                />
+                {/* Handles Test Case 4: Validates date of birth input field */}
+                {errors.dob && <span className="error-msg">{errors.dob}</span>}
+              </div>
 
-              <button
-                type="submit"
-                className="submit-button"
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  marginTop: "20px",
-                  background: "#1d4ed8",
-                  border: "none",
-                  color: "white",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontSize: "16px",
-                }}
-              >
-                Submit
-              </button>
+              <button type="submit">Submit</button>
             </form>
+
+            {/* Submission message output (for Test Case 5) */}
+            {submissionMsg && <p className="submit-msg">{submissionMsg}</p>}
           </div>
         </div>
       )}
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  margin: "8px 0 15px 0",
-  borderRadius: "6px",
-  border: "1px solid #cbd5e1",
-};
