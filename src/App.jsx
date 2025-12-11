@@ -8,12 +8,10 @@ export default function App() {
     phone: "",
     dob: "", // Date of Birth (dd-mm-yyyy)
   });
-  const [errors, setErrors] = useState({});
   const [submissionMsg, setSubmissionMsg] = useState("");
 
   const openForm = () => {
     setIsOpen(true);
-    setErrors({});
     setSubmissionMsg("");
     setFormData({ username: "", email: "", phone: "", dob: "" });
   };
@@ -27,84 +25,97 @@ export default function App() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear errors when typing
-    setErrors({});
   };
 
-  // --- UPDATED Validation Logic (Using alert() for errors) ---
+  // --- Final Validation Logic using alert() ---
   const validate = () => {
-    // Note: Since we are using alert(), we stop immediately on the first error.
-    
-    // 1. Compulsory Field Check
-    if (!formData.username) {
+    const { username, email, phone, dob } = formData;
+
+    // 1. Compulsory Field Checks
+    if (!username) {
         alert("Username is required.");
         return false;
     }
-    if (!formData.email) {
+    if (!email) {
         alert("Email is required.");
         return false;
     }
-    if (!formData.phone) {
+    if (!phone) {
         alert("Phone Number is required.");
         return false;
     }
-    if (!formData.dob) {
+    if (!dob) {
         alert("Date of Birth is required.");
         return false;
     }
 
-    // 2. Email Validation (Must contain '@')
-    const simpleEmailRegex = /@/;
-    if (!simpleEmailRegex.test(formData.email)) {
-      alert("Invalid email. Please check your email address."); // REQUIRED ALERT MESSAGE
-      return false;
+    // 2. Email Validation (Must contain '@' and be a valid format)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert("Invalid email. Please check your email address.");
+        return false;
     }
 
     // 3. Phone Number Validation (Must be exactly 10 digits)
-    const phoneRegex = /^\d{10}$/; 
-    if (!phoneRegex.test(formData.phone)) {
-      alert("Invalid phone number. Please enter a 10-digit phone number."); // REQUIRED ALERT MESSAGE
-      return false;
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phone)) {
+        alert("Invalid phone number. Please enter a 10-digit phone number.");
+        return false;
     }
 
-    // 4. Date of Birth Validation (dd-mm-yyyy format AND not future date)
+    // 4. Date of Birth Validation (Format and Future Date Check)
     const dobRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = dob.match(dobRegex);
     
-    if (!dobRegex.test(formData.dob)) {
-      // Assuming this is the desired alert for an incorrect format
+    if (!match) {
       alert("Invalid Date of Birth. DOB must be in dd-mm-yyyy format.");
       return false;
-    } else {
-      const parts = formData.dob.match(dobRegex);
-      const dateString = `${parts[3]}-${parts[2]}-${parts[1]}`; 
-      const inputDate = new Date(dateString);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); 
-      
-      if (inputDate > today) {
-        // REQUIRED ALERT MESSAGE for Future Date (I'm using the phone number alert text as requested)
-        alert("Invalid phone number. Please enter a 10-digit phone number."); 
-        return false;
-      }
     }
 
-    return true; // All validation passed
+    // Parse date parts: day=match[1], month=match[2]-1, year=match[3]
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1; 
+    const year = parseInt(match[3], 10);
+
+    const inputDate = new Date(year, month, day);
+
+    // Check if the date is a real calendar date (e.g., prevents 31-02-2020)
+    if (
+      inputDate.getFullYear() !== year ||
+      inputDate.getMonth() !== month ||
+      inputDate.getDate() !== day
+    ) {
+      alert("Invalid Date of Birth. Please enter a real calendar date.");
+      return false;
+    }
+
+    // Check if DOB is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (inputDate > today) {
+      // NOTE: This uses the exact required alert message from your previous instruction,
+      // which specified the phone number error text for a future DOB:
+      alert("Invalid phone number. Please enter a 10-digit phone number."); 
+      return false;
+    }
+    
+    return true; // All validations passed
   };
 
-  // Submits the form
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (validate()) {
       setSubmissionMsg("Success! Form submitted with valid data.");
-      // You can add the alert here if required: alert("Form Submitted!");
     } else {
-      setSubmissionMsg(""); // Clear message if validation fails
+      setSubmissionMsg("");
     }
   };
 
   // --- STYLES (Includes the CSS fix for Test Case 6) ---
   const styles = `
+    /* Test Case 6 Fix: Ensures the overlay covers the viewport */
     .modal-overlay {
       position: fixed; 
       top: 0;
@@ -119,6 +130,7 @@ export default function App() {
       font-family: Arial, sans-serif;
     }
 
+    /* Modal classes for Cypress targeting */
     .modal, .modal-content {
       background: white;
       padding: 30px 40px;
@@ -164,7 +176,7 @@ export default function App() {
         color: ${submissionMsg.startsWith('Success') ? '#28a745' : '#dc3545'};
     }
 
-    .submit-button { /* TARGETED CLASS FOR SUBMIT BUTTON */
+    .submit-button { /* REQUIRED CLASS for Submit button */
       width: 100%;
       padding: 10px;
       background-color: #007bff;
@@ -200,7 +212,7 @@ export default function App() {
       {isOpen && (
         <div 
           className="modal-overlay" 
-          onClick={closeForm} 
+          onClick={closeForm} // Test Case 6: Close on outside click
         > 
           <div
             className="modal modal-content" 
