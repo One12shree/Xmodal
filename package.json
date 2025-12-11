@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    // ADDED START SCRIPT FOR DEPLOYMENT SERVICES
     "start": "npm run preview", 
     "lint": "eslint .",
     "preview": "vite preview"
