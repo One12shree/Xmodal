@@ -8,17 +8,14 @@ export default function App() {
     phone: "",
     dob: "", // Date of Birth (dd-mm-yyyy)
   });
-  const [submissionMsg, setSubmissionMsg] = useState("");
 
   const openForm = () => {
     setIsOpen(true);
-    setSubmissionMsg("");
     setFormData({ username: "", email: "", phone: "", dob: "" }); // Reset form on open
   };
 
   const closeForm = () => {
     setIsOpen(false);
-    setSubmissionMsg(""); // Clear message on close
   };
 
   const handleChange = (e) => {
@@ -61,7 +58,7 @@ export default function App() {
     // 3. Phone Number Validation (Must be exactly 10 digits)
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(phone)) {
-        // REQUIRED ALERT MESSAGE for Phone Number
+        // REQUIRED ALERT MESSAGE for Phone Number (Confirmed by your image)
         alert("Invalid phone number. Please enter a 10-digit phone number.");
         return false;
     }
@@ -113,14 +110,13 @@ export default function App() {
       // If valid, close modal and return to initial render state
       alert("Form Submitted Successfully!");
       closeForm(); 
-    } else {
-      setSubmissionMsg("");
     }
+    // Note: No submission message is displayed if submission is successful, 
+    // as the modal closes and returns to the initial render state.
   };
 
-  // --- STYLES (Includes necessary classes for modal structure and selectors) ---
+  // --- STYLES ---
   const styles = `
-    /* Modal structure for click-outside and overlay */
     .modal-overlay { 
       position: fixed; 
       top: 0;
@@ -211,7 +207,7 @@ export default function App() {
       {isOpen && (
         <div 
           className="modal-overlay" 
-          onClick={closeForm} // Click outside closes modal (Requirement)
+          onClick={closeForm} // Click outside closes modal
         > 
           {/* REQUIRED STRUCTURE: Outer div for application/overlay, inner for modal content */}
           <div
@@ -272,8 +268,6 @@ export default function App() {
 
               <button type="submit" className="submit-button">Submit</button> {/* REQUIRED CLASS */}
             </form>
-            
-            {submissionMsg && <p className="submit-msg">{submissionMsg}</p>}
           </div>
         </div>
       )}
