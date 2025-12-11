@@ -11,7 +11,6 @@ export default function App() {
   const [errors, setErrors] = useState({});
   const [submissionMsg, setSubmissionMsg] = useState("");
 
-  // Test Case 1: Opens the modal
   const openForm = () => {
     setIsOpen(true);
     setErrors({});
@@ -19,7 +18,6 @@ export default function App() {
     setFormData({ username: "", email: "", phone: "", dob: "" });
   };
 
-  // Test Case 6: Closes the modal
   const closeForm = () => {
     setIsOpen(false);
   };
@@ -29,7 +27,6 @@ export default function App() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    // Clear the error for the field being edited
     setErrors({
         ...errors,
         [e.target.name]: '' 
@@ -41,6 +38,7 @@ export default function App() {
     const newErrors = {};
     let isValid = true;
     
+    // Check all fields for presence
     if (!formData.username) {
         newErrors.username = "Username is required";
         isValid = false;
@@ -78,7 +76,6 @@ export default function App() {
     if (validate()) {
       setSubmissionMsg("Success! Form submitted with valid data.");
       setErrors({});
-      // Optional: closeForm(); // Close modal after successful submission
     } else {
       setSubmissionMsg("Please correct the errors above.");
     }
@@ -86,7 +83,7 @@ export default function App() {
 
   // --- STYLES (Includes the CSS fix for Test Case 6) ---
   const styles = `
-    /* FIX for Test Case 6: Ensures the overlay covers the ENTIRE viewport */
+    /* Cypress Fix 3: Ensures the overlay uses the class .modal-overlay */
     .modal-overlay {
       position: fixed; 
       top: 0;
@@ -100,8 +97,9 @@ export default function App() {
       z-index: 1000; 
       font-family: Arial, sans-serif;
     }
-
-    .modal-content {
+    
+    /* Cypress Fix 3: Ensure the content uses both .modal and .modal-content */
+    .modal, .modal-content {
       background: white;
       padding: 30px 40px;
       border-radius: 8px;
@@ -167,14 +165,9 @@ export default function App() {
       transition: background-color 0.3s;
     }
 
-    .modal-content button[type="submit"]:hover {
-        background-color: #0056b3;
-    }
-    
-    /* Global styles for the button outside the modal */
     #root > button {
         padding: 10px 20px;
-        background-color: #5a5f73; /* Darker background to match the outside area of the UI preview */
+        background-color: #5a5f73; 
         color: white;
         border: none;
         cursor: pointer;
@@ -185,20 +178,18 @@ export default function App() {
 
 
   return (
-    <div>   
-      {/* Inject CSS into the document */}
+    <div id="root">
       <style>{styles}</style> 
       
       <button onClick={openForm}>Open Form</button>
 
-      {/* MODAL (Conditional rendering) */}
       {isOpen && (
         <div 
-          className="modal-overlay" 
-          onClick={closeForm} // Handles Test Case 6: Close on outside click
+          className="modal-overlay" // Cypress Fix 3
+          onClick={closeForm} // Test Case 6: Close on outside click
         > 
           <div
-            className="modal-content"
+            className="modal modal-content" // Cypress Fix 1 & 3: Added .modal class
             onClick={(e) => e.stopPropagation()} // Keeps modal open on content click
           >
             <h2>Fill Details</h2>
@@ -206,10 +197,11 @@ export default function App() {
             <form onSubmit={handleSubmit}>
               
               <div className="form-group">
-                <label>Username:</label>
+                <label htmlFor="username">Username:</label>
                 <input
                   type="text"
                   name="username"
+                  id="username" // Cypress Fix 2
                   value={formData.username}
                   onChange={handleChange}
                 />
@@ -217,42 +209,45 @@ export default function App() {
               </div>
 
               <div className="form-group">
-                <label>Email Address:</label>
+                <label htmlFor="email">Email Address:</label>
                 <input
                   type="email"
                   name="email"
+                  id="email" // Cypress Fix 2
                   value={formData.email}
                   onChange={handleChange}
                 />
-                {/* Handles Test Case 2: Validates email input field */}
+                {/* Test Case 2: Validates email input field */}
                 {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
 
               <div className="form-group">
-                <label>Phone Number:</label>
+                <label htmlFor="phone">Phone Number:</label>
                 <input
                   type="text"
                   name="phone"
+                  id="phone" // Cypress Fix 2
                   placeholder="e.g., 1234567890"
                   value={formData.phone}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Handles Test Case 3: Validates phone number input field */}
+                {/* Test Case 3: Validates phone number input field */}
                 {errors.phone && <span className="error-msg">{errors.phone}</span>}
               </div>
 
               <div className="form-group">
-                <label>Date of Birth:</label>
+                <label htmlFor="dob">Date of Birth:</label>
                 <input
                   type="text"
                   name="dob"
+                  id="dob" // Cypress Fix 2
                   placeholder="dd-mm-yyyy"
                   value={formData.dob}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Handles Test Case 4: Validates date of birth input field */}
+                {/* Test Case 4: Validates date of birth input field */}
                 {errors.dob && <span className="error-msg">{errors.dob}</span>}
               </div>
 
