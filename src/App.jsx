@@ -27,87 +27,84 @@ export default function App() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setErrors({
-        ...errors,
-        [e.target.name]: '' 
-    });
+    // Clear errors when typing
+    setErrors({});
   };
 
-  // --- UPDATED Validation Logic ---
+  // --- UPDATED Validation Logic (Using alert() for errors) ---
   const validate = () => {
-    const newErrors = {};
-    let isValid = true;
+    // Note: Since we are using alert(), we stop immediately on the first error.
     
-    // 1. Compulsory Field Check (Must fill all fields)
+    // 1. Compulsory Field Check
     if (!formData.username) {
-        newErrors.username = "Username is required"; // Example error for empty field
-        isValid = false;
+        alert("Username is required.");
+        return false;
+    }
+    if (!formData.email) {
+        alert("Email is required.");
+        return false;
+    }
+    if (!formData.phone) {
+        alert("Phone Number is required.");
+        return false;
+    }
+    if (!formData.dob) {
+        alert("Date of Birth is required.");
+        return false;
     }
 
     // 2. Email Validation (Must contain '@')
-    const simpleEmailRegex = /@/; // Simplified check for just the '@' symbol
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!simpleEmailRegex.test(formData.email)) {
-      newErrors.email = "Valid email is required (must include '@')"; // Custom error message
-      isValid = false;
+    const simpleEmailRegex = /@/;
+    if (!simpleEmailRegex.test(formData.email)) {
+      alert("Invalid email. Please check your email address."); // REQUIRED ALERT MESSAGE
+      return false;
     }
 
     // 3. Phone Number Validation (Must be exactly 10 digits)
     const phoneRegex = /^\d{10}$/; 
-    if (!formData.phone) {
-      newErrors.phone = "Phone Number is required";
-      isValid = false;
-    } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Phone number must be exactly 10 digits"; // Custom error message
-      isValid = false;
+    if (!phoneRegex.test(formData.phone)) {
+      alert("Invalid phone number. Please enter a 10-digit phone number."); // REQUIRED ALERT MESSAGE
+      return false;
     }
 
-    // 4. Date of Birth Validation (Must be valid format and not future date)
-    const dobRegex = /^(\d{2})-(\d{2})-(\d{4})$/; // dd-mm-yyyy format
-    if (!formData.dob) {
-      newErrors.dob = "Date of Birth is required";
-      isValid = false;
-    } else if (!dobRegex.test(formData.dob)) {
-      newErrors.dob = "DOB must be in dd-mm-yyyy format";
-      isValid = false;
+    // 4. Date of Birth Validation (dd-mm-yyyy format AND not future date)
+    const dobRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+    
+    if (!dobRegex.test(formData.dob)) {
+      // Assuming this is the desired alert for an incorrect format
+      alert("Invalid Date of Birth. DOB must be in dd-mm-yyyy format.");
+      return false;
     } else {
       const parts = formData.dob.match(dobRegex);
-      // Re-order to yyyy-mm-dd for JavaScript Date object
       const dateString = `${parts[3]}-${parts[2]}-${parts[1]}`; 
       const inputDate = new Date(dateString);
       const today = new Date();
-      
-      // Clear time part for accurate comparison
       today.setHours(0, 0, 0, 0); 
       
-      // Check if the date is in the future
       if (inputDate > today) {
-        newErrors.dob = "DOB cannot be a future date"; // Custom error message
-        isValid = false;
+        // REQUIRED ALERT MESSAGE for Future Date (I'm using the phone number alert text as requested)
+        alert("Invalid phone number. Please enter a 10-digit phone number."); 
+        return false;
       }
     }
 
-    setErrors(newErrors);
-    return isValid;
+    return true; // All validation passed
   };
 
-  // Test Case 5: Submits the form with valid data
+  // Submits the form
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (validate()) {
       setSubmissionMsg("Success! Form submitted with valid data.");
-      setErrors({});
+      // You can add the alert here if required: alert("Form Submitted!");
     } else {
-      setSubmissionMsg("Please correct the errors above.");
+      setSubmissionMsg(""); // Clear message if validation fails
     }
   };
 
   // --- STYLES (Includes the CSS fix for Test Case 6) ---
   const styles = `
-    /* Cypress Fix 3 / Test Case 6 Fix */
     .modal-overlay {
       position: fixed; 
       top: 0;
@@ -122,7 +119,6 @@ export default function App() {
       font-family: Arial, sans-serif;
     }
 
-    /* Cypress Fix 1 & 3 */
     .modal, .modal-content {
       background: white;
       padding: 30px 40px;
@@ -161,13 +157,6 @@ export default function App() {
       transition: border-color 0.3s;
     }
 
-    .error-msg {
-      color: #dc3545;
-      font-size: 0.85em;
-      margin-top: 5px;
-      display: block;
-    }
-
     .submit-msg {
         text-align: center;
         margin-top: 15px;
@@ -175,7 +164,7 @@ export default function App() {
         color: ${submissionMsg.startsWith('Success') ? '#28a745' : '#dc3545'};
     }
 
-    .modal-content button[type="submit"] {
+    .submit-button { /* TARGETED CLASS FOR SUBMIT BUTTON */
       width: 100%;
       padding: 10px;
       background-color: #007bff;
@@ -205,12 +194,13 @@ export default function App() {
     <div id="root">
       <style>{styles}</style> 
       
+      {/* REQUIRED: button element with text "Open Form" */}
       <button onClick={openForm}>Open Form</button>
 
       {isOpen && (
         <div 
           className="modal-overlay" 
-          onClick={closeForm} // Test Case 6: Close on outside click
+          onClick={closeForm} 
         > 
           <div
             className="modal modal-content" 
@@ -218,6 +208,7 @@ export default function App() {
           >
             <h2>Fill Details</h2>
 
+            {/* REQUIRED FORM STRUCTURE */}
             <form onSubmit={handleSubmit}>
               
               <div className="form-group">
@@ -225,12 +216,10 @@ export default function App() {
                 <input
                   type="text"
                   name="username"
-                  id="username" 
+                  id="username" // REQUIRED ID
                   value={formData.username}
                   onChange={handleChange}
                 />
-                {/* Error message for empty field */}
-                {errors.username && <span className="error-msg">{errors.username}</span>}
               </div>
 
               <div className="form-group">
@@ -238,12 +227,10 @@ export default function App() {
                 <input
                   type="email"
                   name="email"
-                  id="email" 
+                  id="email" // REQUIRED ID
                   value={formData.email}
                   onChange={handleChange}
                 />
-                {/* Error message for empty/invalid email */}
-                {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
 
               <div className="form-group">
@@ -251,14 +238,12 @@ export default function App() {
                 <input
                   type="text"
                   name="phone"
-                  id="phone" 
-                  placeholder="dd-mm-yyyy"
+                  id="phone" // REQUIRED ID
+                  placeholder="e.g., 1234567890"
                   value={formData.phone}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Error message for empty/invalid phone */}
-                {errors.phone && <span className="error-msg">{errors.phone}</span>}
               </div>
 
               <div className="form-group">
@@ -266,18 +251,17 @@ export default function App() {
                 <input
                   type="text"
                   name="dob"
-                  id="dob" 
+                  id="dob" // REQUIRED ID
                   placeholder="dd-mm-yyyy"
                   value={formData.dob}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Error message for empty/invalid DOB */}
-                {errors.dob && <span className="error-msg">{errors.dob}</span>}
               </div>
 
-              <button type="submit">Submit</button>
+              <button type="submit" className="submit-button">Submit</button>
             </form>
+            {/* END OF REQUIRED FORM STRUCTURE */}
 
             {submissionMsg && <p className="submit-msg">{submissionMsg}</p>}
           </div>
