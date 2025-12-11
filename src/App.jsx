@@ -13,11 +13,12 @@ export default function App() {
   const openForm = () => {
     setIsOpen(true);
     setSubmissionMsg("");
-    setFormData({ username: "", email: "", phone: "", dob: "" });
+    setFormData({ username: "", email: "", phone: "", dob: "" }); // Reset form on open
   };
 
   const closeForm = () => {
     setIsOpen(false);
+    setSubmissionMsg(""); // Clear message on close
   };
 
   const handleChange = (e) => {
@@ -31,7 +32,7 @@ export default function App() {
   const validate = () => {
     const { username, email, phone, dob } = formData;
 
-    // 1. Compulsory Field Checks
+    // 1. Compulsory Field Checks (Alert if any field is empty)
     if (!username) {
         alert("Username is required.");
         return false;
@@ -52,6 +53,7 @@ export default function App() {
     // 2. Email Validation (Must contain '@' and be a valid format)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+        // REQUIRED ALERT MESSAGE for Email
         alert("Invalid email. Please check your email address.");
         return false;
     }
@@ -59,6 +61,7 @@ export default function App() {
     // 3. Phone Number Validation (Must be exactly 10 digits)
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(phone)) {
+        // REQUIRED ALERT MESSAGE for Phone Number
         alert("Invalid phone number. Please enter a 10-digit phone number.");
         return false;
     }
@@ -68,6 +71,7 @@ export default function App() {
     const match = dob.match(dobRegex);
     
     if (!match) {
+      // Alert for incorrect format
       alert("Invalid Date of Birth. DOB must be in dd-mm-yyyy format.");
       return false;
     }
@@ -94,8 +98,7 @@ export default function App() {
     today.setHours(0, 0, 0, 0);
 
     if (inputDate > today) {
-      // NOTE: This uses the exact required alert message from your previous instruction,
-      // which specified the phone number error text for a future DOB:
+      // REQUIRED ALERT MESSAGE for future DOB (MUST use the phone number error text)
       alert("Invalid phone number. Please enter a 10-digit phone number."); 
       return false;
     }
@@ -107,16 +110,18 @@ export default function App() {
     e.preventDefault();
 
     if (validate()) {
-      setSubmissionMsg("Success! Form submitted with valid data.");
+      // If valid, close modal and return to initial render state
+      alert("Form Submitted Successfully!");
+      closeForm(); 
     } else {
       setSubmissionMsg("");
     }
   };
 
-  // --- STYLES (Includes the CSS fix for Test Case 6) ---
+  // --- STYLES (Includes necessary classes for modal structure and selectors) ---
   const styles = `
-    /* Test Case 6 Fix: Ensures the overlay covers the viewport */
-    .modal-overlay {
+    /* Modal structure for click-outside and overlay */
+    .modal-overlay { 
       position: fixed; 
       top: 0;
       left: 0;
@@ -130,8 +135,8 @@ export default function App() {
       font-family: Arial, sans-serif;
     }
 
-    /* Modal classes for Cypress targeting */
-    .modal, .modal-content {
+    /* REQUIRED CLASSES for the modal content */
+    .modal, .modal-content { 
       background: white;
       padding: 30px 40px;
       border-radius: 8px;
@@ -169,13 +174,6 @@ export default function App() {
       transition: border-color 0.3s;
     }
 
-    .submit-msg {
-        text-align: center;
-        margin-top: 15px;
-        font-weight: bold;
-        color: ${submissionMsg.startsWith('Success') ? '#28a745' : '#dc3545'};
-    }
-
     .submit-button { /* REQUIRED CLASS for Submit button */
       width: 100%;
       padding: 10px;
@@ -206,21 +204,22 @@ export default function App() {
     <div id="root">
       <style>{styles}</style> 
       
-      {/* REQUIRED: button element with text "Open Form" */}
+      {/* INITIAL RENDER: REQUIRED button element with text "Open Form" */}
       <button onClick={openForm}>Open Form</button>
 
+      {/* MODAL: Rendered only when isOpen is true */}
       {isOpen && (
         <div 
           className="modal-overlay" 
-          onClick={closeForm} // Test Case 6: Close on outside click
+          onClick={closeForm} // Click outside closes modal (Requirement)
         > 
+          {/* REQUIRED STRUCTURE: Outer div for application/overlay, inner for modal content */}
           <div
-            className="modal modal-content" 
-            onClick={(e) => e.stopPropagation()} 
+            className="modal modal-content" // REQUIRED CLASSES
+            onClick={(e) => e.stopPropagation()} // Prevents click inside from closing modal
           >
             <h2>Fill Details</h2>
 
-            {/* REQUIRED FORM STRUCTURE */}
             <form onSubmit={handleSubmit}>
               
               <div className="form-group">
@@ -271,10 +270,9 @@ export default function App() {
                 />
               </div>
 
-              <button type="submit" className="submit-button">Submit</button>
+              <button type="submit" className="submit-button">Submit</button> {/* REQUIRED CLASS */}
             </form>
-            {/* END OF REQUIRED FORM STRUCTURE */}
-
+            
             {submissionMsg && <p className="submit-msg">{submissionMsg}</p>}
           </div>
         </div>
