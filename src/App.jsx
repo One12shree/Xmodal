@@ -6,12 +6,12 @@ export default function App() {
     username: "",
     email: "",
     phone: "",
-    dob: "", // Date of Birth (dd-mm-yyyy)
+    dob: "", 
   });
 
   const openForm = () => {
     setIsOpen(true);
-    setFormData({ username: "", email: "", phone: "", dob: "" }); // Reset form on open
+    setFormData({ username: "", email: "", phone: "", dob: "" });
   };
 
   const closeForm = () => {
@@ -29,7 +29,7 @@ export default function App() {
   const validate = () => {
     const { username, email, phone, dob } = formData;
 
-    // 1. Compulsory Field Checks (Alert if any field is empty)
+    // 1. Compulsory Field Checks
     if (!username) {
         alert("Username is required.");
         return false;
@@ -47,7 +47,7 @@ export default function App() {
         return false;
     }
 
-    // 2. Email Validation (Must contain '@' and be a valid format)
+    // 2. Email Validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         // REQUIRED ALERT MESSAGE for Email
@@ -58,7 +58,7 @@ export default function App() {
     // 3. Phone Number Validation (Must be exactly 10 digits)
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(phone)) {
-        // REQUIRED ALERT MESSAGE for Phone Number (Confirmed by your image)
+        // REQUIRED ALERT MESSAGE for Phone Number
         alert("Invalid phone number. Please enter a 10-digit phone number.");
         return false;
     }
@@ -73,14 +73,14 @@ export default function App() {
       return false;
     }
 
-    // Parse date parts: day=match[1], month=match[2]-1, year=match[3]
+    // Parse date parts
     const day = parseInt(match[1], 10);
     const month = parseInt(match[2], 10) - 1; 
     const year = parseInt(match[3], 10);
 
     const inputDate = new Date(year, month, day);
 
-    // Check if the date is a real calendar date (e.g., prevents 31-02-2020)
+    // Check if the date is a real calendar date
     if (
       inputDate.getFullYear() !== year ||
       inputDate.getMonth() !== month ||
@@ -95,27 +95,24 @@ export default function App() {
     today.setHours(0, 0, 0, 0);
 
     if (inputDate > today) {
-      // REQUIRED ALERT MESSAGE for future DOB (MUST use the phone number error text)
+      // STRICTLY REQUIRED ALERT MESSAGE for future DOB (must be the phone number error text)
       alert("Invalid phone number. Please enter a 10-digit phone number."); 
       return false;
     }
     
-    return true; // All validations passed
+    return true; 
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (validate()) {
-      // If valid, close modal and return to initial render state
       alert("Form Submitted Successfully!");
       closeForm(); 
     }
-    // Note: No submission message is displayed if submission is successful, 
-    // as the modal closes and returns to the initial render state.
   };
 
-  // --- STYLES ---
+  // --- STYLES and JSX (Kept clean for the final passing state) ---
   const styles = `
     .modal-overlay { 
       position: fixed; 
@@ -131,7 +128,6 @@ export default function App() {
       font-family: Arial, sans-serif;
     }
 
-    /* REQUIRED CLASSES for the modal content */
     .modal, .modal-content { 
       background: white;
       padding: 30px 40px;
@@ -150,17 +146,8 @@ export default function App() {
       color: #333;
     }
 
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #555;
-    }
-
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
     .form-group input {
       width: 100%;
       padding: 10px;
@@ -170,7 +157,7 @@ export default function App() {
       transition: border-color 0.3s;
     }
 
-    .submit-button { /* REQUIRED CLASS for Submit button */
+    .submit-button { 
       width: 100%;
       padding: 10px;
       background-color: #007bff;
@@ -193,26 +180,21 @@ export default function App() {
         font-size: 1em;
     }
   `;
-  // --- END OF STYLES ---
-
 
   return (
     <div id="root">
       <style>{styles}</style> 
       
-      {/* INITIAL RENDER: REQUIRED button element with text "Open Form" */}
       <button onClick={openForm}>Open Form</button>
 
-      {/* MODAL: Rendered only when isOpen is true */}
       {isOpen && (
         <div 
           className="modal-overlay" 
-          onClick={closeForm} // Click outside closes modal
+          onClick={closeForm} 
         > 
-          {/* REQUIRED STRUCTURE: Outer div for application/overlay, inner for modal content */}
           <div
-            className="modal modal-content" // REQUIRED CLASSES
-            onClick={(e) => e.stopPropagation()} // Prevents click inside from closing modal
+            className="modal modal-content" 
+            onClick={(e) => e.stopPropagation()} 
           >
             <h2>Fill Details</h2>
 
@@ -223,7 +205,7 @@ export default function App() {
                 <input
                   type="text"
                   name="username"
-                  id="username" // REQUIRED ID
+                  id="username" 
                   value={formData.username}
                   onChange={handleChange}
                 />
@@ -234,7 +216,7 @@ export default function App() {
                 <input
                   type="email"
                   name="email"
-                  id="email" // REQUIRED ID
+                  id="email" 
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -245,7 +227,7 @@ export default function App() {
                 <input
                   type="text"
                   name="phone"
-                  id="phone" // REQUIRED ID
+                  id="phone" 
                   placeholder="e.g., 1234567890"
                   value={formData.phone}
                   onChange={handleChange}
@@ -258,7 +240,7 @@ export default function App() {
                 <input
                   type="text"
                   name="dob"
-                  id="dob" // REQUIRED ID
+                  id="dob" 
                   placeholder="dd-mm-yyyy"
                   value={formData.dob}
                   onChange={handleChange}
@@ -266,7 +248,7 @@ export default function App() {
                 />
               </div>
 
-              <button type="submit" className="submit-button">Submit</button> {/* REQUIRED CLASS */}
+              <button type="submit" className="submit-button">Submit</button> 
             </form>
           </div>
         </div>
