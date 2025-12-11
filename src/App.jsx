@@ -33,36 +33,60 @@ export default function App() {
     });
   };
 
-  // --- Validation Logic (For Test Cases 2, 3, 4) ---
+  // --- UPDATED Validation Logic ---
   const validate = () => {
     const newErrors = {};
     let isValid = true;
     
-    // Check all fields for presence
+    // 1. Compulsory Field Check (Must fill all fields)
     if (!formData.username) {
-        newErrors.username = "Username is required";
+        newErrors.username = "Username is required"; // Example error for empty field
         isValid = false;
     }
 
-    // Test Case 2: Validates email input field
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email || !emailRegex.test(formData.email)) {
-      newErrors.email = "Valid email is required (e.g., user@example.com)";
+    // 2. Email Validation (Must contain '@')
+    const simpleEmailRegex = /@/; // Simplified check for just the '@' symbol
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!simpleEmailRegex.test(formData.email)) {
+      newErrors.email = "Valid email is required (must include '@')"; // Custom error message
       isValid = false;
     }
 
-    // Test Case 3: Validates phone number input field (10 digits)
-    const phoneRegex = /^\d{10}$/;
-    if (!formData.phone || !phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Phone number must be exactly 10 digits";
+    // 3. Phone Number Validation (Must be exactly 10 digits)
+    const phoneRegex = /^\d{10}$/; 
+    if (!formData.phone) {
+      newErrors.phone = "Phone Number is required";
+      isValid = false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits"; // Custom error message
       isValid = false;
     }
 
-    // Test Case 4: Validates date of birth input field (dd-mm-yyyy format)
-    const dobRegex = /^\d{2}-\d{2}-\d{4}$/;
-    if (!formData.dob || !dobRegex.test(formData.dob)) {
+    // 4. Date of Birth Validation (Must be valid format and not future date)
+    const dobRegex = /^(\d{2})-(\d{2})-(\d{4})$/; // dd-mm-yyyy format
+    if (!formData.dob) {
+      newErrors.dob = "Date of Birth is required";
+      isValid = false;
+    } else if (!dobRegex.test(formData.dob)) {
       newErrors.dob = "DOB must be in dd-mm-yyyy format";
       isValid = false;
+    } else {
+      const parts = formData.dob.match(dobRegex);
+      // Re-order to yyyy-mm-dd for JavaScript Date object
+      const dateString = `${parts[3]}-${parts[2]}-${parts[1]}`; 
+      const inputDate = new Date(dateString);
+      const today = new Date();
+      
+      // Clear time part for accurate comparison
+      today.setHours(0, 0, 0, 0); 
+      
+      // Check if the date is in the future
+      if (inputDate > today) {
+        newErrors.dob = "DOB cannot be a future date"; // Custom error message
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -83,7 +107,7 @@ export default function App() {
 
   // --- STYLES (Includes the CSS fix for Test Case 6) ---
   const styles = `
-    /* Cypress Fix 3: Ensures the overlay uses the class .modal-overlay */
+    /* Cypress Fix 3 / Test Case 6 Fix */
     .modal-overlay {
       position: fixed; 
       top: 0;
@@ -97,8 +121,8 @@ export default function App() {
       z-index: 1000; 
       font-family: Arial, sans-serif;
     }
-    
-    /* Cypress Fix 3: Ensure the content uses both .modal and .modal-content */
+
+    /* Cypress Fix 1 & 3 */
     .modal, .modal-content {
       background: white;
       padding: 30px 40px;
@@ -185,12 +209,12 @@ export default function App() {
 
       {isOpen && (
         <div 
-          className="modal-overlay" // Cypress Fix 3
+          className="modal-overlay" 
           onClick={closeForm} // Test Case 6: Close on outside click
         > 
           <div
-            className="modal modal-content" // Cypress Fix 1 & 3: Added .modal class
-            onClick={(e) => e.stopPropagation()} // Keeps modal open on content click
+            className="modal modal-content" 
+            onClick={(e) => e.stopPropagation()} 
           >
             <h2>Fill Details</h2>
 
@@ -201,10 +225,11 @@ export default function App() {
                 <input
                   type="text"
                   name="username"
-                  id="username" // Cypress Fix 2
+                  id="username" 
                   value={formData.username}
                   onChange={handleChange}
                 />
+                {/* Error message for empty field */}
                 {errors.username && <span className="error-msg">{errors.username}</span>}
               </div>
 
@@ -213,11 +238,11 @@ export default function App() {
                 <input
                   type="email"
                   name="email"
-                  id="email" // Cypress Fix 2
+                  id="email" 
                   value={formData.email}
                   onChange={handleChange}
                 />
-                {/* Test Case 2: Validates email input field */}
+                {/* Error message for empty/invalid email */}
                 {errors.email && <span className="error-msg">{errors.email}</span>}
               </div>
 
@@ -226,13 +251,13 @@ export default function App() {
                 <input
                   type="text"
                   name="phone"
-                  id="phone" // Cypress Fix 2
-                  placeholder="e.g., 1234567890"
+                  id="phone" 
+                  placeholder="dd-mm-yyyy"
                   value={formData.phone}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Test Case 3: Validates phone number input field */}
+                {/* Error message for empty/invalid phone */}
                 {errors.phone && <span className="error-msg">{errors.phone}</span>}
               </div>
 
@@ -241,20 +266,19 @@ export default function App() {
                 <input
                   type="text"
                   name="dob"
-                  id="dob" // Cypress Fix 2
+                  id="dob" 
                   placeholder="dd-mm-yyyy"
                   value={formData.dob}
                   onChange={handleChange}
                   maxLength="10"
                 />
-                {/* Test Case 4: Validates date of birth input field */}
+                {/* Error message for empty/invalid DOB */}
                 {errors.dob && <span className="error-msg">{errors.dob}</span>}
               </div>
 
               <button type="submit">Submit</button>
             </form>
 
-            {/* Submission message output (for Test Case 5) */}
             {submissionMsg && <p className="submit-msg">{submissionMsg}</p>}
           </div>
         </div>
